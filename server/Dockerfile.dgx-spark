@@ -1,0 +1,27 @@
+# DGX Spark (aarch64 + GB10) 用。
+# DGX Spark では faster-whisper (CTranslate2) の CUDA 版 wheel が提供されていないため、
+# NVIDIA の NGC PyTorch コンテナ + transformers の Whisper を GPU で動かす。
+# ベースイメージのタグは NGC カタログで arm64 対応の最新版を確認して指定する。
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:25.09-py3
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+# torch はベースイメージのものを使う (上書きしない)。
+# 話者分離 (sherpa-onnx) は CPU (Grace) で動く。aarch64 の wheel が PyPI にある。
+RUN pip install --no-cache-dir "fastapi>=0.115" "uvicorn>=0.30" "av>=12" "transformers>=4.45" \
+    "sherpa-onnx==1.13.8" "sherpa-onnx-core==1.13.8"
+COPY pyproject.toml ./
+COPY omi_home_server ./omi_home_server
+RUN pip install --no-cache-dir --no-deps .
+
+ENV OMI_DATA_DIR=/data \
+    OMI_STT_ENGINE=transformers \
+    OMI_STT_MODEL=openai/whisper-large-v3-turbo \
+    OMI_LANGUAGES=ja,en \
+    OMI_MODEL_DIR=/models/sherpa \
+    HF_HOME=/models \
+    HF_HUB_DISABLE_TELEMETRY=1 \
+    DO_NOT_TRACK=1
+
+EXPOSE 8000
+CMD ["omi-server", "serve", "--host", "0.0.0.0", "--port", "8000"]

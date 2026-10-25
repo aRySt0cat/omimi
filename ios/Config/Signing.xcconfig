@@ -1,0 +1,9 @@
+// 署名設定。個人の Team ID などは Signing.local.xcconfig (git 管理外) に書く:
+//
+//   DEVELOPMENT_TEAM = ABCDE12345
+//   OMI_BUNDLE_ID = com.example.omimi
+//
+OMI_BUNDLE_ID = local.omimi.app
+DEVELOPMENT_TEAM =
+
+#include? "Signing.local.xcconfig"

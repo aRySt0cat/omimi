@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Xcode / SwiftPM
+ios/Omimi.xcodeproj/
+ios/Config/Signing.local.xcconfig
+DerivedData/
+.build/
+.swiftpm/
+xcuserdata/
+
+# Python
+server/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# サーバのデータ (録音・文字起こし・トークン) とモデル
+server/data/
+server/models/
+*.pem

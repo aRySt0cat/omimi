@@ -1,0 +1,33 @@
+# DGX Spark での起動例: `docker compose up -d --build`
+services:
+  omi:
+    build:
+      context: .
+      dockerfile: Dockerfile.dgx-spark
+    restart: unless-stopped
+    ports:
+      # LAN / VPN からのみ到達できるようにすること (ルータでポート開放しない)
+      - "8000:8000"
+    volumes:
+      - ./data:/data        # 音声・文字起こし・SQLite・トークン
+      - ./models:/models    # Whisper モデルのキャッシュ
+    environment:
+      OMI_TRANSCRIBE_POLICY: requested   # requested | always | never
+      OMI_STT_ENGINE: transformers
+      OMI_STT_MODEL: openai/whisper-large-v3-turbo
+      OMI_LANGUAGES: ja,en               # 発話ごとに日本語/英語を自動判別
+      OMI_DIARIZATION: "1"               # 話者分離・話者識別
+      OMI_TIMEZONE: Asia/Tokyo           # timeline/ の日付・時刻
+      # OMI_SPEAKER_MATCH_THRESHOLD: "0.7" # 同一人物とみなす類似度 (別人が混ざるなら上げる)
+      # OMI_DIARIZATION_THRESHOLD: "0.3"   # 話者分離の細かさ (小さいほど細かく分ける)
+      # 初回にモデルをダウンロードした後は 1 / 0 にすると外部へ一切通信しない
+      HF_HUB_OFFLINE: "0"
+      OMI_ALLOW_MODEL_DOWNLOAD: "1"
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
